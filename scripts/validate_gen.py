@@ -19,7 +19,7 @@ def load():
     mx.loadLibraries(folders, sp, doc)
     return doc, sp
 
-def gen_for(node_category, out_type, gen, label, doc, sp):
+def gen_for(node_category, out_type, gen, label, doc):
     # build a tiny doc instantiating the node, wire an output, generate
     d = doc.copy()
     ng = d.addNodeGraph("test_ng")
@@ -39,7 +39,7 @@ def gen_for(node_category, out_type, gen, label, doc, sp):
     return src
 
 def main():
-    doc, sp = load()
+    doc, _ = load()
     # sanity: our nodedefs resolved
     cats = ["mtoon_ramp", "scss_crosstone", "slug_path", "splat4"]
     types = {"mtoon_ramp": "color3", "scss_crosstone": "color3",
@@ -56,8 +56,8 @@ def main():
     os.makedirs(outdir, exist_ok=True)
     for c in cats:
         print(f"\n{c}:")
-        s = gen_for(c, types[c], slang, "slang", doc, sp)
-        g = gen_for(c, types[c], glsl,  "glsl",  doc, sp)
+        s = gen_for(c, types[c], slang, "slang", doc)
+        g = gen_for(c, types[c], glsl,  "glsl",  doc)
         open(os.path.join(outdir, c + ".slang"), "w").write(s)
         open(os.path.join(outdir, c + ".glsl"),  "w").write(g)
     print("\nALL NODES GENERATED Slang + GLSL. wrote ->", outdir)

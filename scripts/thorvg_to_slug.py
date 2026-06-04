@@ -4,7 +4,6 @@ resolution. Deterministic - no fitting. Run: python scripts/thorvg_to_slug.py [f
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import os, sys
 import numpy as np
 from PIL import Image
 from vsekai_materialx.thorvg_slug import load_svg, slug_coverage

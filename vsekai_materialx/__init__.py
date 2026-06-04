@@ -7,8 +7,10 @@ Public API:
 """
 from .library import load_document, source_search_path, LIB_DIR, BUNDLED_LIB
 from .generate import generate, generate_material, make_generator
+from .thorvg_decompose import decompose
 
 __all__ = [
     "load_document", "source_search_path", "LIB_DIR", "BUNDLED_LIB",
     "generate", "generate_material", "make_generator",
+    "decompose",
 ]

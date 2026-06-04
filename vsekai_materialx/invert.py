@@ -15,7 +15,6 @@ Loop (identical to the CPU reference):
 Differentiable params: mtoon shade/lit/shift/toony, slug smoothing + atlas texels,
 splat offset/scale/weight (presence). 'weight' makes the instance count learnable.
 """
-import vsekai_materialx as v
 
 
 def main():
@@ -29,7 +28,6 @@ def main():
     # SlangPy compiles it with [Differentiable] and provides .backward for the loss.
     print("Generate the graph's Slang, mark inputs [Differentiable], dispatch fwd+bwd.")
     print("See scripts/invert_toon.py for the exact loop this mirrors on GPU.")
-    _ = v.generate  # entry kept thin until run on a graphics device
 
 
 if __name__ == "__main__":
