@@ -74,14 +74,14 @@ def decompose(svg_path, lib_path=None):
                                   C.byref(pts), C.byref(npt)) != 0 or ncmd.value == 0:
             return True                                   # not a shape (scene/picture) - keep walking
         P = [(pts[i].x, pts[i].y) for i in range(npt.value)]
-        contours, cur, k = [], [], 0
+        contours, cur, k, npts = [], [], 0, npt.value
         for c in (cmds[i] for i in range(ncmd.value)):
-            if c == MOVETO:
+            if c == MOVETO and k < npts:
                 if cur: contours.append(np.array(cur))
                 cur = [P[k]]; k += 1
-            elif c == LINETO:
+            elif c == LINETO and k < npts:
                 cur.append(P[k]); k += 1
-            elif c == CUBICTO:
+            elif c == CUBICTO and k + 2 < npts:
                 p0 = np.array(cur[-1]) if cur else np.array(P[k])
                 seg = _flatten_cubic(p0, np.array(P[k]), np.array(P[k+1]), np.array(P[k+2]))
                 cur.extend(seg.tolist()); k += 3

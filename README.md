@@ -11,6 +11,17 @@ formalization in [`materialx-shaders-lean`](https://github.com/v-sekai-multiplay
 (copied here under [`lean/`](lean) as the spec: each node graph is proved equal to
 its `Shader.Toon` / `Shader.Vector` reference function).
 
+## Gallery
+
+| ThorVG → Slug (tiger, 240 shapes) | Slug + Splat (instanced) | Toon target → fit |
+|:---:|:---:|:---:|
+| ![tiger](docs/img/tiger.png) | ![slug+splat](docs/img/slug_splat.png) | ![fit](docs/img/toon_fit.png) |
+
+ThorVG decomposes `tiger.svg` (arcs→cubics, transforms baked, strokes tessellated) into
+240 `Shape`s; each is rendered by Slug's exact signed-distance coverage. Center: a render
+made from *only* Slug + Splat. Right: an MToon ramp + Slug emblem fit to a target by
+gradient descent (`pixi run invert`).
+
 ## Why this works
 
 The key realization (verified, not asserted): every shader we care about reduces to a
