@@ -1,0 +1,120 @@
+% v-sekai-materialx — sources for the PBR/NPR/vector-as-stock-MaterialX pipeline,
+% the Slang codegen + differentiable (SlangPy) path, and the neural-texture direction.
+
+@misc{materialx,
+  title        = {{MaterialX}: An Open Standard for Network-Based CG Object Looks},
+  author       = {{Academy Software Foundation}},
+  howpublished = {\url{https://materialx.org}},
+  note         = {v1.39.5; stdlib/pbrlib/bxdf/nprlib node libraries and ShaderGen},
+  year         = {2026}
+}
+
+@misc{materialx_slang,
+  title        = {{MaterialX} Adds Support for {Slang} Shader Generation},
+  author       = {{Academy Software Foundation} and {Khronos Group} and {NVIDIA}},
+  howpublished = {\url{https://www.aswf.io/blog/materialx-adds-support-for-slang-shader-generation/}},
+  note         = {Slang ShaderGen backend; differentiable rendering motivation},
+  year         = {2026}
+}
+
+@misc{slang,
+  title        = {The {Slang} Shading Language},
+  author       = {{Khronos Group} and {NVIDIA}},
+  howpublished = {\url{https://shader-slang.org}},
+  note         = {Automatic differentiation; Vulkan/D3D12/Metal/WGSL/CUDA backends},
+  year         = {2026}
+}
+
+@misc{slangpy,
+  title        = {{SlangPy}: Calling {Slang} from {Python} with Automatic Differentiation},
+  author       = {{Slang Contributors}},
+  howpublished = {\url{https://shader-slang.org/machine-learning/}},
+  note         = {pip install slangpy; forward/backward GPU autodiff},
+  year         = {2026}
+}
+
+@article{zeltner2024neural,
+  title   = {Real-Time Neural Appearance Models},
+  author  = {Zeltner, Tizian and Rousselle, Fabrice and Weidlich, Andrea and
+             Clarberg, Petrik and Nov{\'a}k, Jan and Bitterli, Benedikt and
+             Evans, Alex and M{\"u}ller, Thomas and Jakob, Wenzel and Bako, Steve},
+  journal = {ACM Transactions on Graphics},
+  year    = {2024},
+  doi     = {10.1145/3659577},
+  note    = {Learned hierarchical textures + neural decoders; targets Slang},
+  url     = {https://research.nvidia.com/labs/rtr/neural_appearance_models/}
+}
+
+@misc{weier2023blockcompressed,
+  title        = {Real-Time Neural Materials using Block-Compressed Features},
+  author       = {Weier, Philippe and Zeltner, Tizian and Rousselle, Fabrice and others},
+  howpublished = {\url{https://arxiv.org/abs/2311.16121}},
+  year         = {2023}
+}
+
+@inproceedings{lengyel2017slug,
+  title     = {{GPU}-Centered Font Rendering Directly from Glyph Outlines},
+  author    = {Lengyel, Eric},
+  booktitle = {Journal of Computer Graphics Techniques (JCGT)},
+  volume    = {6},
+  number    = {2},
+  year      = {2017},
+  note      = {The Slug algorithm: exact per-pixel coverage from B{\'e}zier outlines},
+  url       = {https://jcgt.org/published/0006/02/02/}
+}
+
+@misc{chlumsky2020msdf,
+  title        = {Shape Decomposition for Multi-Channel Distance Fields ({msdfgen})},
+  author       = {Chlumsk{\'y}, Viktor},
+  howpublished = {\url{https://github.com/Chlumsky/msdfgen}},
+  note         = {Multi-channel signed distance field bake/decode; median reconstruction},
+  year         = {2020}
+}
+
+@misc{vrm_mtoon,
+  title        = {{VRMC\_materials\_mtoon}: The {MToon} Toon Shader for {VRM}},
+  author       = {{VRM Consortium}},
+  howpublished = {\url{https://github.com/vrm-c/vrm-specification}},
+  note         = {MToon 1.0 shade/lit ramp (linearstep reformulation) vs legacy 0.x},
+  year         = {2024}
+}
+
+@misc{scss,
+  title        = {Silent's Cel Shading Shader ({SCSS} / Crosstone)},
+  author       = {{Silent (Giselle Tanner)}},
+  howpublished = {\url{https://gitlab.com/s-ilent/SCSS}},
+  note         = {Two-band crosstone ramp (Unity); modelled here as stock smoothstep+mix},
+  year         = {2022}
+}
+
+@misc{gooch1998,
+  title        = {A Non-Photorealistic Lighting Model for Automatic Technical Illustration},
+  author       = {Gooch, Amy and Gooch, Bruce and Shirley, Peter and Cohen, Elaine},
+  howpublished = {SIGGRAPH 1998},
+  note         = {Warm/cool tone shading; stock {MaterialX} {\tt gooch\_shade} node},
+  year         = {1998}
+}
+
+@misc{fxmap,
+  title        = {{FX-Map} / Splat Instancing},
+  author       = {{Adobe Substance 3D Designer}},
+  howpublished = {\url{https://substance3d.adobe.com}},
+  note         = {Bounded instance-splatting capability; "Splat" is our untrademarked name},
+  year         = {2024}
+}
+
+@misc{louizos2018l0,
+  title        = {Learning Sparse Neural Networks through $L_0$ Regularization},
+  author       = {Louizos, Christos and Welling, Max and Kingma, Diederik P.},
+  howpublished = {ICLR 2018; \url{https://arxiv.org/abs/1712.01312}},
+  note         = {Hard-concrete gates; basis for differentiable instance count (presence weights)},
+  year         = {2018}
+}
+
+@misc{vsekai_lean,
+  title        = {materialx-shaders-lean: a Lean 4 Formalization of PBR/NPR/Vector as MaterialX},
+  author       = {Lee, K. S. Ernest (iFire)},
+  howpublished = {\url{https://github.com/v-sekai-multiplayer-fabric/materialx-shaders-lean}},
+  note         = {Reference functions proved equivalent to the stock node graphs in this repo (./lean)},
+  year         = {2026}
+}

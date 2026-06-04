@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- A ThorVG-loadable vector asset: cubic-Bezier heart outline.
+       ThorVG reads SVG/Lottie/TVG into Shape paths (moveTo/lineTo/cubicTo/close);
+       this is the same path geometry our Slug consumer flattens + renders exactly. -->
+  <path d="M50,84 C13,55 13,22 35,22 C46,22 50,30 50,34 C50,30 54,22 65,22 C87,22 87,55 50,84 Z"
+        fill="#f0c814"/>
+</svg>

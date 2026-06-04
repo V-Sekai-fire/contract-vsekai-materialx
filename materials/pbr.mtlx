@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<materialx version="1.39" colorspace="lin_rec709">
+  <!--
+    PBR is MaterialX's native domain - no custom nodes. These are stock
+    surface shaders (gltf_pbr, standard_surface, open_pbr_surface) wired into
+    materials, exactly what Shader.MaterialX.convert targets (gltf_pbr).
+
+    The showcase material drives a gltf_pbr base_color from the NPR mtoon_ramp
+    node, demonstrating that PBR + NPR + vector all compose in one stock graph.
+  -->
+
+  <!-- Plain glTF PBR material (the convert target). -->
+  <gltf_pbr name="SR_gltf" type="surfaceshader">
+    <input name="base_color" type="color3" value="0.8, 0.2, 0.3" />
+    <input name="metallic" type="float" value="0.0" />
+    <input name="roughness" type="float" value="0.5" />
+  </gltf_pbr>
+  <surfacematerial name="M_gltf" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="SR_gltf" />
+  </surfacematerial>
+
+  <!-- Autodesk standard_surface material. -->
+  <standard_surface name="SR_std" type="surfaceshader">
+    <input name="base_color" type="color3" value="0.5, 0.6, 0.9" />
+    <input name="specular_roughness" type="float" value="0.35" />
+  </standard_surface>
+  <surfacematerial name="M_std" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="SR_std" />
+  </surfacematerial>
+
+  <!-- Unified: a gltf_pbr surface whose base_color is the MToon NPR ramp. -->
+  <nodegraph name="NG_showcase">
+    <mtoon_ramp name="toon" type="color3">
+      <input name="light_direction" type="vector3" value="0.3, 0.8, 0.5" />
+      <input name="lit_color" type="color3" value="0.9, 0.5, 0.6" />
+      <input name="shade_color" type="color3" value="0.3, 0.2, 0.35" />
+    </mtoon_ramp>
+    <output name="base" type="color3" nodename="toon" />
+  </nodegraph>
+  <gltf_pbr name="SR_showcase" type="surfaceshader">
+    <input name="base_color" type="color3" nodegraph="NG_showcase" output="base" />
+    <input name="roughness" type="float" value="0.4" />
+  </gltf_pbr>
+  <surfacematerial name="M_showcase" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="SR_showcase" />
+  </surfacematerial>
+
+</materialx>

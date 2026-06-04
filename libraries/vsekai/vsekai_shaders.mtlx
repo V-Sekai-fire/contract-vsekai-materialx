@@ -1,0 +1,242 @@
+<?xml version="1.0"?>
+<materialx version="1.39" colorspace="lin_rec709">
+  <!--
+    v-sekai stock-node shader library.
+
+    PBR + NPR (MToon, SCSS) + vector primitives (Slug, Splat) expressed ENTIRELY
+    as compositions of *standard* MaterialX nodes - no custom <implementation>,
+    no per-target source. Because they are pure stock graphs, MaterialX's own
+    ShaderGen emits GLSL / MSL / OSL / MDL / Slang for them for free.
+
+    Each functional nodegraph is the MaterialX realization of a Lean reference
+    function proved equivalent in ../lean (Shader.Toon / Shader.Vector /
+    Shader.MaterialX). See references.bib.
+  -->
+
+  <!-- =================================================================== -->
+  <!-- NPR: MToon 1.0 shading ramp                                         -->
+  <!--   col = mix(shade, lit, linearstep(low, high, dot(N,L) + shift))    -->
+  <!--   linearstep = clamp((x-low)/(high-low), 0, 1)  (pure stock)        -->
+  <!-- =================================================================== -->
+  <nodedef name="ND_mtoon_ramp_color3" node="mtoon_ramp" nodegroup="npr"
+           doc="VRM MToon 1.0 shade/lit ramp, stock-node realization of Shader.Toon.rampV1.">
+    <input name="normal" type="vector3" defaultgeomprop="Nworld" />
+    <input name="light_direction" type="vector3" value="0, 1, 0" />
+    <input name="shading_shift" type="float" value="0.0" uimin="-1" uimax="1" />
+    <input name="shading_toony" type="float" value="0.9" uimin="0" uimax="1" />
+    <input name="lit_color" type="color3" value="1, 1, 1" />
+    <input name="shade_color" type="color3" value="0.97, 0.81, 0.86" />
+    <output name="out" type="color3" />
+  </nodedef>
+
+  <nodegraph name="NG_mtoon_ramp_color3" nodedef="ND_mtoon_ramp_color3">
+    <normalize name="n_unit" type="vector3">
+      <input name="in" type="vector3" interfacename="normal" />
+    </normalize>
+    <normalize name="l_unit" type="vector3">
+      <input name="in" type="vector3" interfacename="light_direction" />
+    </normalize>
+    <dotproduct name="ndotl" type="float">
+      <input name="in1" type="vector3" nodename="n_unit" />
+      <input name="in2" type="vector3" nodename="l_unit" />
+    </dotproduct>
+    <add name="shifted" type="float">
+      <input name="in1" type="float" nodename="ndotl" />
+      <input name="in2" type="float" interfacename="shading_shift" />
+    </add>
+    <!-- ramp edges pulled in by toony: low = -1+toony, high = 1-toony -->
+    <subtract name="edge_low" type="float">
+      <input name="in1" type="float" interfacename="shading_toony" />
+      <input name="in2" type="float" value="1.0" />
+    </subtract>
+    <subtract name="edge_high" type="float">
+      <input name="in1" type="float" value="1.0" />
+      <input name="in2" type="float" interfacename="shading_toony" />
+    </subtract>
+    <!-- linearstep(low, high, shifted) = clamp((shifted-low)/(high-low),0,1) -->
+    <subtract name="num" type="float">
+      <input name="in1" type="float" nodename="shifted" />
+      <input name="in2" type="float" nodename="edge_low" />
+    </subtract>
+    <subtract name="den" type="float">
+      <input name="in1" type="float" nodename="edge_high" />
+      <input name="in2" type="float" nodename="edge_low" />
+    </subtract>
+    <divide name="ratio" type="float">
+      <input name="in1" type="float" nodename="num" />
+      <input name="in2" type="float" nodename="den" />
+    </divide>
+    <clamp name="ramp" type="float">
+      <input name="in" type="float" nodename="ratio" />
+      <input name="low" type="float" value="0.0" />
+      <input name="high" type="float" value="1.0" />
+    </clamp>
+    <mix name="shaded" type="color3">
+      <input name="bg" type="color3" interfacename="shade_color" />
+      <input name="fg" type="color3" interfacename="lit_color" />
+      <input name="mix" type="float" nodename="ramp" />
+    </mix>
+    <output name="out" type="color3" nodename="shaded" />
+  </nodegraph>
+
+  <!-- =================================================================== -->
+  <!-- NPR: SCSS / Crosstone two-band ramp                                 -->
+  <!--   s   = mix(second, first, smoothstep(.15,.25, dot))                -->
+  <!--   col = mix(s, base,  smoothstep(.40,.50, dot))                     -->
+  <!-- =================================================================== -->
+  <nodedef name="ND_scss_crosstone_color3" node="scss_crosstone" nodegroup="npr"
+           doc="Silent's SCSS/Crosstone two-band ramp, stock realization of Shader.Toon.scss.">
+    <input name="normal" type="vector3" defaultgeomprop="Nworld" />
+    <input name="light_direction" type="vector3" value="0, 1, 0" />
+    <input name="base_color" type="color3" value="1, 1, 1" />
+    <input name="first_color" type="color3" value="0.7, 0.7, 0.75" />
+    <input name="second_color" type="color3" value="0.4, 0.4, 0.5" />
+    <output name="out" type="color3" />
+  </nodedef>
+
+  <nodegraph name="NG_scss_crosstone_color3" nodedef="ND_scss_crosstone_color3">
+    <normalize name="n_unit" type="vector3">
+      <input name="in" type="vector3" interfacename="normal" />
+    </normalize>
+    <normalize name="l_unit" type="vector3">
+      <input name="in" type="vector3" interfacename="light_direction" />
+    </normalize>
+    <dotproduct name="coord" type="float">
+      <input name="in1" type="vector3" nodename="n_unit" />
+      <input name="in2" type="vector3" nodename="l_unit" />
+    </dotproduct>
+    <smoothstep name="t2" type="float">
+      <input name="in" type="float" nodename="coord" />
+      <input name="low" type="float" value="0.15" />
+      <input name="high" type="float" value="0.25" />
+    </smoothstep>
+    <smoothstep name="t1" type="float">
+      <input name="in" type="float" nodename="coord" />
+      <input name="low" type="float" value="0.40" />
+      <input name="high" type="float" value="0.50" />
+    </smoothstep>
+    <mix name="band" type="color3">
+      <input name="bg" type="color3" interfacename="second_color" />
+      <input name="fg" type="color3" interfacename="first_color" />
+      <input name="mix" type="float" nodename="t2" />
+    </mix>
+    <mix name="result" type="color3">
+      <input name="bg" type="color3" nodename="band" />
+      <input name="fg" type="color3" interfacename="base_color" />
+      <input name="mix" type="float" nodename="t1" />
+    </mix>
+    <output name="out" type="color3" nodename="result" />
+  </nodegraph>
+
+  <!-- =================================================================== -->
+  <!-- Vector: Slug coverage = portable MSDF decode                        -->
+  <!--   median(r,g,b) then smoothstep(0.5 +- smoothing)                   -->
+  <!--   median = max(min(r,g), min(max(r,g), b))                          -->
+  <!-- =================================================================== -->
+  <nodedef name="ND_slug_path_float" node="slug_path" nodegroup="npr"
+           doc="Slug glyph coverage via MSDF decode (Shader.Vector.decodeMSDF), pure stock nodes.">
+    <input name="file" type="filename" value="" uniform="true" />
+    <input name="texcoord" type="vector2" defaultgeomprop="UV0" />
+    <input name="smoothing" type="float" value="0.06" uimin="0.001" uimax="0.5" />
+    <output name="out" type="float" />
+  </nodedef>
+
+  <nodegraph name="NG_slug_path_float" nodedef="ND_slug_path_float">
+    <image name="msdf" type="color3">
+      <input name="file" type="filename" interfacename="file" />
+      <input name="texcoord" type="vector2" interfacename="texcoord" />
+    </image>
+    <separate3 name="ch" type="multioutput">
+      <input name="in" type="color3" nodename="msdf" />
+    </separate3>
+    <min name="min_rg" type="float">
+      <input name="in1" type="float" nodename="ch" output="outr" />
+      <input name="in2" type="float" nodename="ch" output="outg" />
+    </min>
+    <max name="max_rg" type="float">
+      <input name="in1" type="float" nodename="ch" output="outr" />
+      <input name="in2" type="float" nodename="ch" output="outg" />
+    </max>
+    <min name="min2" type="float">
+      <input name="in1" type="float" nodename="max_rg" />
+      <input name="in2" type="float" nodename="ch" output="outb" />
+    </min>
+    <max name="median" type="float">
+      <input name="in1" type="float" nodename="min_rg" />
+      <input name="in2" type="float" nodename="min2" />
+    </max>
+    <subtract name="lo" type="float">
+      <input name="in1" type="float" value="0.5" />
+      <input name="in2" type="float" interfacename="smoothing" />
+    </subtract>
+    <add name="hi" type="float">
+      <input name="in1" type="float" value="0.5" />
+      <input name="in2" type="float" interfacename="smoothing" />
+    </add>
+    <smoothstep name="cov" type="float">
+      <input name="in" type="float" nodename="median" />
+      <input name="low" type="float" nodename="lo" />
+      <input name="high" type="float" nodename="hi" />
+    </smoothstep>
+    <output name="out" type="float" nodename="cov" />
+  </nodegraph>
+
+  <!-- =================================================================== -->
+  <!-- Vector: Splat = bounded (N=4) layered union of slug_path, with a     -->
+  <!--   DIFFERENTIABLE count via per-instance presence weight w_i.         -->
+  <!--   cov_i = slug_path((uv - offset_i)/scale_i)                         -->
+  <!--   out   = 1 - prod_i (1 - w_i*cov_i)   (alpha-over soft union)       -->
+  <!--   N     = sum_i w_i ;  reduces to exact max-union as w_i binarize.   -->
+  <!--   This is the PSO symbol-art model: layered shapes + per-layer       -->
+  <!--   opacity (w_i), alpha-blended. All stock nodes.                     -->
+  <!-- =================================================================== -->
+  <nodedef name="ND_splat4_float" node="splat4" nodegroup="npr"
+           doc="Bounded 4-instance splat (Shader.Splat.splatEval) with a differentiable count: per-instance presence weight w_i in [0,1], alpha-over soft union out = 1 - prod_i(1 - w_i*cov_i), N = sum_i w_i. Optimize soft, threshold w_i>0.5 to deploy hard. PSO symbol-art layering; all stock nodes.">
+    <input name="file" type="filename" value="" uniform="true" />
+    <input name="texcoord" type="vector2" defaultgeomprop="UV0" />
+    <input name="smoothing" type="float" value="0.06" />
+    <input name="offset0" type="vector2" value="0.0, 0.0" />
+    <input name="scale0"  type="vector2" value="1.0, 1.0" />
+    <input name="weight0" type="float"   value="1.0" uimin="0" uimax="1" />
+    <input name="offset1" type="vector2" value="0.5, 0.0" />
+    <input name="scale1"  type="vector2" value="1.0, 1.0" />
+    <input name="weight1" type="float"   value="1.0" uimin="0" uimax="1" />
+    <input name="offset2" type="vector2" value="0.0, 0.5" />
+    <input name="scale2"  type="vector2" value="1.0, 1.0" />
+    <input name="weight2" type="float"   value="1.0" uimin="0" uimax="1" />
+    <input name="offset3" type="vector2" value="0.5, 0.5" />
+    <input name="scale3"  type="vector2" value="1.0, 1.0" />
+    <input name="weight3" type="float"   value="1.0" uimin="0" uimax="1" />
+    <output name="out" type="float" />
+  </nodedef>
+
+  <nodegraph name="NG_splat4_float" nodedef="ND_splat4_float">
+    <subtract name="d0" type="vector2"><input name="in1" type="vector2" interfacename="texcoord" /><input name="in2" type="vector2" interfacename="offset0" /></subtract>
+    <divide name="l0" type="vector2"><input name="in1" type="vector2" nodename="d0" /><input name="in2" type="vector2" interfacename="scale0" /></divide>
+    <slug_path name="c0" type="float"><input name="file" type="filename" interfacename="file" /><input name="texcoord" type="vector2" nodename="l0" /><input name="smoothing" type="float" interfacename="smoothing" /></slug_path>
+    <subtract name="d1" type="vector2"><input name="in1" type="vector2" interfacename="texcoord" /><input name="in2" type="vector2" interfacename="offset1" /></subtract>
+    <divide name="l1" type="vector2"><input name="in1" type="vector2" nodename="d1" /><input name="in2" type="vector2" interfacename="scale1" /></divide>
+    <slug_path name="c1" type="float"><input name="file" type="filename" interfacename="file" /><input name="texcoord" type="vector2" nodename="l1" /><input name="smoothing" type="float" interfacename="smoothing" /></slug_path>
+    <subtract name="d2" type="vector2"><input name="in1" type="vector2" interfacename="texcoord" /><input name="in2" type="vector2" interfacename="offset2" /></subtract>
+    <divide name="l2" type="vector2"><input name="in1" type="vector2" nodename="d2" /><input name="in2" type="vector2" interfacename="scale2" /></divide>
+    <slug_path name="c2" type="float"><input name="file" type="filename" interfacename="file" /><input name="texcoord" type="vector2" nodename="l2" /><input name="smoothing" type="float" interfacename="smoothing" /></slug_path>
+    <subtract name="d3" type="vector2"><input name="in1" type="vector2" interfacename="texcoord" /><input name="in2" type="vector2" interfacename="offset3" /></subtract>
+    <divide name="l3" type="vector2"><input name="in1" type="vector2" nodename="d3" /><input name="in2" type="vector2" interfacename="scale3" /></divide>
+    <slug_path name="c3" type="float"><input name="file" type="filename" interfacename="file" /><input name="texcoord" type="vector2" nodename="l3" /><input name="smoothing" type="float" interfacename="smoothing" /></slug_path>
+    <!-- presence-weighted alpha-over soft union (differentiable in w_i) -->
+    <multiply name="g0" type="float"><input name="in1" type="float" nodename="c0" /><input name="in2" type="float" interfacename="weight0" /></multiply>
+    <multiply name="g1" type="float"><input name="in1" type="float" nodename="c1" /><input name="in2" type="float" interfacename="weight1" /></multiply>
+    <multiply name="g2" type="float"><input name="in1" type="float" nodename="c2" /><input name="in2" type="float" interfacename="weight2" /></multiply>
+    <multiply name="g3" type="float"><input name="in1" type="float" nodename="c3" /><input name="in2" type="float" interfacename="weight3" /></multiply>
+    <subtract name="k0" type="float"><input name="in1" type="float" value="1.0" /><input name="in2" type="float" nodename="g0" /></subtract>
+    <subtract name="k1" type="float"><input name="in1" type="float" value="1.0" /><input name="in2" type="float" nodename="g1" /></subtract>
+    <subtract name="k2" type="float"><input name="in1" type="float" value="1.0" /><input name="in2" type="float" nodename="g2" /></subtract>
+    <subtract name="k3" type="float"><input name="in1" type="float" value="1.0" /><input name="in2" type="float" nodename="g3" /></subtract>
+    <multiply name="p01" type="float"><input name="in1" type="float" nodename="k0" /><input name="in2" type="float" nodename="k1" /></multiply>
+    <multiply name="p012" type="float"><input name="in1" type="float" nodename="p01" /><input name="in2" type="float" nodename="k2" /></multiply>
+    <multiply name="prod" type="float"><input name="in1" type="float" nodename="p012" /><input name="in2" type="float" nodename="k3" /></multiply>
+    <subtract name="union" type="float"><input name="in1" type="float" value="1.0" /><input name="in2" type="float" nodename="prod" /></subtract>
+    <output name="out" type="float" nodename="union" />
+  </nodegraph>
+
+</materialx>

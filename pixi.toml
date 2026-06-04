@@ -1,0 +1,36 @@
+[project]
+name = "vsekai-materialx"
+version = "0.1.0"
+description = "PBR + NPR (MToon/SCSS) + Slug vector maps as STOCK MaterialX nodes, generating Slang; differentiable appearance fitting via SlangPy."
+authors = ["K. S. Ernest (iFire) Lee <ernest.lee@chibifire.com>"]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64", "osx-arm64", "osx-64"]
+
+[dependencies]
+python = "3.12.*"
+numpy = ">=1.26"
+pillow = "*"
+
+[pypi-dependencies]
+materialx = "==1.39.5"
+
+[feature.gpu.pypi-dependencies]
+slangpy = ">=0.20"          # GPU differentiable path; needs a D3D12/Vulkan device
+
+[environments]
+default = { features = [] }
+gpu = { features = ["gpu"] }
+
+[tasks]
+# --- proven on CPU with stock MaterialX (no GPU) ---
+gen    = { cmd = "python scripts/validate_gen.py", description = "Load stdlib+vsekai, generate Slang+GLSL for every node" }
+render = { cmd = "python scripts/render_slug_layers.py", description = "Render layered Slug coverage to a PNG (app-level layering)" }
+vectorize = { cmd = "python scripts/raster_to_vector_slug.py", description = "Calculated raster -> vector via exact Slug coverage (no ML)" }
+thorvg = { cmd = "python scripts/thorvg_to_slug.py", description = "Load an SVG outline (ThorVG-class) and render it via exact Slug coverage" }
+check-dataset = { cmd = "python scripts/check_thorvg_dataset.py", description = "Render ThorVG's SVG test corpus through Slug; report correctness (fallback parser)" }
+invert = { cmd = "python scripts/invert_toon.py", description = "Differentiably fit MToon ramp + Slug emblem to a target (CPU reference)" }
+pbr    = { cmd = "python scripts/gen_pbr.py", description = "Generate Slang surface shaders for the stock PBR materials" }
+
+# --- GPU path (pixi run -e gpu ...) ---
+render-gpu = { cmd = "python -m vsekai_materialx.render", description = "Run MaterialX-generated Slang over a UV grid via SlangPy" }
+invert-gpu = { cmd = "python -m vsekai_materialx.invert", description = "Hardware-autodiff appearance fitting via SlangPy" }
